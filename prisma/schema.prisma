@@ -15,7 +15,56 @@ export async function GET() {
         },
       });
     }
+generator client {
+  provider = "prisma-client-js"
+}
 
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  coverImage String?
+  published Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relacionamentos
+  category    Category? @relation(fields: [categoryId], references: [id])
+  categoryId  String?
+  
+  author      User?     @relation(fields: [authorId], references: [id])
+  authorId    String?
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String
+  slug  String @unique
+  posts Post[]
+}
+
+model User {
+  id    String @id @default(cuid())
+  name  String
+  email String @unique
+  posts Post[]
+}
+
+model Page {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  title     String
+  content   String
+  image     String?
+  updatedAt DateTime @updatedAt
+}
     // 2. Cria a Página "Sobre" (com o texto que já fizemos)
     await prisma.page.upsert({
       where: { slug: "sobre" },
