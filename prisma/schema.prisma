@@ -15,6 +15,9 @@ model Post {
   content    String
   coverImage String?
   published  Boolean  @default(false)
+  
+  featured   Boolean  @default(false)  // <--- ADICIONE ESTA LINHA AQUI
+  
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   
