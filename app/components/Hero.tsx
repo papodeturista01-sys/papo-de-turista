@@ -1,47 +1,54 @@
-// app/components/Hero.tsx
+import Link from "next/link";
 import Image from "next/image";
-import { ArrowDown } from "lucide-react";
 
-export function Hero() {
+// Definimos o que o Hero espera receber
+interface HeroProps {
+  post: any; // Aceita o objeto do post
+}
+
+export default function Hero({ post }: HeroProps) {
+  // Se não tiver post nenhum (banco vazio), mostra um padrão
+  if (!post) {
+    return (
+      <section className="relative w-full h-[600px] flex items-center justify-center bg-slate-800 text-white">
+        <h1 className="text-4xl font-bold">Em breve novas histórias...</h1>
+      </section>
+    );
+  }
+
   return (
-    <section className="relative h-screen flex items-center justify-center overflow-hidden">
-      {/* 1. Imagem de Fundo (Hero) */}
-      <div className="absolute inset-0 z-0">
+    <section className="relative w-full h-[600px] flex items-center justify-center">
+      {/* 1. Imagem de Fundo (Capa do Post) */}
+      {post.coverImage ? (
         <Image
-          src="https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021&auto=format&fit=crop"
-          alt="Viajante olhando montanhas"
+          src={post.coverImage}
+          alt={post.title}
           fill
-          className="object-cover"
-          priority // Carrega rápido para o SEO
+          className="object-cover brightness-50" // brightness-50 deixa mais escuro para ler o texto
+          priority
         />
-        {/* Máscara escura para o texto brilhar */}
-        <div className="absolute inset-0 bg-black/40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-transparent to-slate-50" />
-      </div>
+      ) : (
+        <div className="absolute inset-0 bg-slate-800" /> // Fundo cinza se não tiver foto
+      )}
 
-      {/* 2. Conteúdo Centralizado */}
-      <div className="relative z-10 text-center text-white px-4 max-w-4xl mx-auto mt-10">
-        <span className="uppercase tracking-[0.3em] text-sm md:text-base font-light mb-4 block animate-in fade-in slide-in-from-bottom-4 duration-1000">
-          Bem-vindo ao Papo de Turista
-        </span>
+      {/* 2. Texto e Botão */}
+      <div className="relative z-10 text-center text-white px-4 max-w-4xl">
+        {post.category && (
+          <span className="uppercase tracking-widest text-sm bg-blue-600 px-3 py-1 rounded-full mb-4 inline-block">
+            {post.category.name}
+          </span>
+        )}
         
-        <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-150">
-          Viajar é trocar a roupa da alma.
+        <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight drop-shadow-lg">
+          {post.title}
         </h1>
-        
-        <p className="text-lg md:text-xl font-light text-slate-200 mb-8 max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-300">
-          Crônicas, destinos e reflexões para quem busca mais do que apenas visitar lugares, mas vivê-los intensamente.
-        </p>
 
-        {/* Botão de Ação (CTA) */}
-        <button className="bg-white text-slate-900 px-8 py-3 rounded-full font-semibold hover:bg-slate-100 transition-all transform hover:scale-105 animate-in fade-in zoom-in duration-1000 delay-500">
-          Ler as Crônicas
-        </button>
-      </div>
-
-      {/* Seta indicando rolagem */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white animate-bounce">
-        <ArrowDown size={32} />
+        <Link
+          href={`/post/${post.slug}`}
+          className="inline-block bg-white text-slate-900 px-8 py-3 rounded-full font-bold hover:bg-blue-50 transition-colors"
+        >
+          Ler História
+        </Link>
       </div>
     </section>
   );

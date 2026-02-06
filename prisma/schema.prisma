@@ -28,6 +28,17 @@ model Post {
   authorId   String?
 }
 
+
+// Modelo para páginas fixas (Sobre, Contato, etc)
+model StaticPage {
+  id        String   @id @default(cuid())
+  slug      String   @unique // ex: 'sobre', 'contato'
+  title     String
+  content   String   @db.Text // O texto longo
+  updatedAt DateTime @updatedAt
+}
+
+
 model Category {
   id    String @id @default(cuid())
   name  String
