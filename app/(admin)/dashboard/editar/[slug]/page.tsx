@@ -84,7 +84,7 @@ export default async function EditPostPage({ params }: EditPostProps) {
               <label className="block text-sm font-medium text-slate-700 mb-2">Categoria</label>
               <select 
                 name="categoryId" 
-                defaultValue={post.categoryId} 
+                defaultValue={post.categoryId || ""}
                 className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white"
               >
                 {categories.map((cat) => (
