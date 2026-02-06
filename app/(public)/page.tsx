@@ -1,5 +1,5 @@
-import Hero from "@/components/Hero";
-import FeaturedPosts from "@/components/FeaturedPosts"; // Se você tiver essa lista embaixo
+import Hero from "@/components/HeroBanner"; // Mudou aqui!
+// import FeaturedPosts from "@/components/FeaturedPosts"; // Se você tiver essa lista embaixo
 import { prisma } from "@/lib/prisma";
 
 // Essa função diz pro Next.js não fazer cache eterno, para você ver a troca de destaque logo
