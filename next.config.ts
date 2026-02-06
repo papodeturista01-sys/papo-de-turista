@@ -1,26 +1,15 @@
 import type { NextConfig } from "next";
 
-const nextConfig: NextConfig = {
-  // 1. Libera imagens do Unsplash e do seu Supabase
+const nextConfig = {
   images: {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'images.unsplash.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'atveyixqdhfdmqdrvpwx.supabase.co', // Seu Supabase
+        hostname: 'fktsbrzdhvjpyolvtxvo.supabase.co', // <--- O NOVO ENDEREÇO AQUI
+        port: '',
+        pathname: '/storage/v1/object/public/**',
       },
     ],
-  },
-  // 2. Ignora erros de TypeScript no Build (Para não travar o deploy)
-  typescript: {
-    ignoreBuildErrors: true,
-  },
-  // 3. Ignora erros de ESLint no Build
-  eslint: {
-    ignoreDuringBuilds: true,
   },
 };
 
