@@ -2,8 +2,8 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Save, X } from "lucide-react";
-// CORREÇÃO AQUI EMBAIXO: Caminho relativo para achar o componente
-import { ImageUpload } from "../../../../components/ImageUpload"; 
+// CORREÇÃO: Apenas 3 "subidas" para chegar na pasta app
+import { ImageUpload } from "../../../components/ImageUpload"; 
 
 export default async function NewPostPage() {
   const categories = await prisma.category.findMany();
