@@ -1,6 +1,6 @@
 // app/(public)/layout.tsx
 import "../globals.css"; // Garante que o CSS global carregue
-import { Navbar } from "../components/Navbar";
+import Navbar from "../components/Navbar";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"] });
