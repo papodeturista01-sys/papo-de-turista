@@ -1,4 +1,4 @@
-import Hero from "@/components/HeroDestaque"; // <--- Nome novo aqui!
+import HeroDestaque from "./HeroDestaque";
 // import FeaturedPosts from "@/components/FeaturedPosts"; // Se você tiver essa lista embaixo
 import { prisma } from "@/lib/prisma";
 
@@ -40,8 +40,7 @@ export default async function Home() {
   return (
     <main>
       {/* Passamos o post encontrado para o Hero */}
-      <Hero post={heroPost} />
-      
+<HeroDestaque post={heroPost} />      
       {/* Aqui embaixo vai sua lista de posts normais */}
       {/* <FeaturedPosts posts={recentPosts} /> */}
     </main>

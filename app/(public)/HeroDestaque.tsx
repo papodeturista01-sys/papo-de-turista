@@ -6,7 +6,8 @@ interface HeroProps {
   post: any; // Aceita o objeto do post
 }
 
-export default function Hero({ post }: HeroProps) {
+// MUDAMOS O NOME AQUI PARA BATER COM O ARQUIVO
+export default function HeroDestaque({ post }: HeroProps) {
   // Se não tiver post nenhum (banco vazio), mostra um padrão
   if (!post) {
     return (
