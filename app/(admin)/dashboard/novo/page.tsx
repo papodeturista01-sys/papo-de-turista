@@ -1,7 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache"; // <--- 1. ADICIONEI ISSO
 import { Save, X } from "lucide-react";
-import { ImageUpload } from "@/app/components/ImageUpload"; // <--- Importamos o novo componente
+import { ImageUpload } from "@/components/ImageUpload"; // Ajustei o caminho do import para garantir
 
 export default async function NewPostPage() {
   // Busca as categorias para preencher o <select>
@@ -36,6 +37,9 @@ export default async function NewPostPage() {
         published: true, // Já publica direto
       },
     });
+
+    // <--- 2. ADICIONEI ISSO: Avisa o painel que tem post novo
+    revalidatePath("/dashboard");
 
     // Volta para o Dashboard
     redirect("/dashboard");

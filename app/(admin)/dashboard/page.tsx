@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { PlusCircle, FileText } from "lucide-react";
+export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
   // Busca todos os posts do banco de dados (ordenados pelos mais novos)
