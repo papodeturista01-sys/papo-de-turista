@@ -75,7 +75,7 @@ export default async function NewPostPage() {
             </select>
           </div>
 
-          {/* Upload de Imagem (Novo Componente) */}
+          {/* Upload de Imagem (NovoComponente) */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Capa do Post</label>
             {/* O name="coverImage" conecta com a variável no createPost lá em cima */}
