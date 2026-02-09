@@ -16,7 +16,7 @@ export default async function NewPostPage() {
     const content = formData.get("content") as string;
     const categoryId = formData.get("categoryId") as string;
     const coverImage = formData.get("coverImage") as string;
-    const excerpt = formData.get("excerpt") as string; // <--- AGORA PEGA O RESUMO
+    const excerpt = formData.get("excerpt") as string;
     
     const slug = title
       .toLowerCase()
