@@ -1,95 +1,62 @@
-// app/components/Navbar.tsx
-"use client";
+"use client"; // <--- Importante para o navegador saber onde estamos
 
 import Link from "next/link";
-import { useState, useEffect } from "react";
-import { Menu, X, Plane, MapPin, BookOpen, PenTool, Mail } from "lucide-react";
+import { usePathname } from "next/navigation"; // Hook para saber a rota atual
+import { Menu } from "lucide-react"; // Ícone de menu (opcional)
 
-export function Navbar() {
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-
-  // Efeito para detectar rolagem e mudar a cor do menu
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 50) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
-  const navLinks = [
-    { name: "Home", href: "/" },
-    { name: "Crônicas", href: "/cronicas", icon: BookOpen },
-    { name: "Destinos", href: "/destinos", icon: MapPin },
-    { name: "Turismo & Reflexões", href: "/turismo-reflexoes", icon: Plane }, // [cite: 10]
-    { name: "Diário de Bordo", href: "/diario-bordo", icon: PenTool }, // [cite: 11]
-    { name: "Sobre", href: "/sobre" },
-    { name: "Contato", href: "/contato", icon: Mail },
-  ];
+export default function Navbar() {
+  const pathname = usePathname();
+  
+  // Verifica se estamos na página inicial
+  const isHome = pathname === "/";
 
   return (
-    <header
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
-        isScrolled
-          ? "bg-white/90 backdrop-blur-md shadow-sm py-3 text-slate-800"
-          : "bg-transparent py-5 text-white" // Transparente no topo (para ficar em cima da foto Hero)
+    <nav 
+      className={`w-full z-50 transition-colors duration-300 ${
+        isHome 
+          ? "absolute top-0 left-0 bg-transparent text-white" // Na Home: Transparente e Absoluto
+          : "relative bg-blue-900 text-white shadow-md"       // Nas outras: Azul e Relativo
       }`}
     >
-      <div className="container mx-auto px-6 flex justify-between items-center">
+      <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+        
         {/* LOGO */}
-        <Link href="/" className="text-2xl font-bold tracking-tighter hover:opacity-80 transition">
-          Papo de Turista
+        <Link href="/" className="text-2xl font-bold tracking-tighter hover:opacity-80">
+          Papo de Turista ✈️
         </Link>
 
-        {/* MENU DESKTOP */}
-        <nav className="hidden md:flex items-center gap-8">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              className="text-sm font-medium hover:text-blue-500 transition-colors flex items-center gap-1"
-            >
-              {link.name}
-            </Link>
-          ))}
-          {/* Botão de Newsletter no Menu [cite: 14] */}
-          <button className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
-            isScrolled ? "bg-blue-600 text-white hover:bg-blue-700" : "bg-white text-blue-900 hover:bg-gray-100"
-          }`}>
-            Assinar News
-          </button>
-        </nav>
-
-        {/* MENU MOBILE (HAMBURGUER) */}
-        <button
-          className="md:hidden"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-        </button>
-      </div>
-
-      {/* GAVETA DO MENU MOBILE */}
-      {isMobileMenuOpen && (
-        <div className="md:hidden absolute top-full left-0 w-full bg-white shadow-lg py-6 px-6 flex flex-col gap-4 text-slate-800 animate-in slide-in-from-top-5">
-          {navLinks.map((link) => (
-            <Link
-              key={link.name}
-              href={link.href}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg font-medium py-2 border-b border-gray-100 flex items-center gap-3"
-            >
-              {link.icon && <link.icon size={18} className="text-blue-500" />}
-              {link.name}
-            </Link>
-          ))}
+        {/* LINKS (Desktop) */}
+        <div className="hidden md:flex items-center gap-8 font-medium">
+          <Link href="/" className="hover:text-blue-200 transition-colors">
+            Início
+          </Link>
+          <Link href="/sobre" className="hover:text-blue-200 transition-colors">
+            Sobre
+          </Link>
+          <Link href="/contato" className="hover:text-blue-200 transition-colors">
+            Contato
+          </Link>
+          {/* Botão de Login/Admin discreto */}
+          <Link 
+            href="/dashboard" 
+            className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+               isHome 
+                 ? "bg-white text-blue-900 hover:bg-blue-50" 
+                 : "bg-blue-700 text-white hover:bg-blue-600 border border-blue-500"
+            }`}
+          >
+            Acesso Restrito
+          </Link>
         </div>
-      )}
-    </header>
+
+        {/* MENU MOBILE (Ícone simples para celular) */}
+        <div className="md:hidden">
+          <button className="p-2">
+            <Menu size={28} />
+          </button>
+        </div>
+
+      </div>
+    </nav>
   );
 }
