@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { Save, X } from "lucide-react";
 import { ImageUpload } from "../../../components/ImageUpload"; 
 
-// 1. ADICIONE ESTA LINHA AQUI! 👇
+// 1. ADICIONE ESTA LINHA AQUI!!! 👇
 export const dynamic = 'force-dynamic';
 
 export default async function NewPostPage() {
