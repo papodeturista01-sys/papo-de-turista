@@ -2,11 +2,16 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Save, X } from "lucide-react";
-// CORREÇÃO: Apenas 3 "subidas" para chegar na pasta app
 import { ImageUpload } from "../../../components/ImageUpload"; 
 
+// 1. ADICIONE ESTA LINHA AQUI! 👇
+export const dynamic = 'force-dynamic';
+
 export default async function NewPostPage() {
-  const categories = await prisma.category.findMany();
+  // Agora ele busca a lista fresquinha toda vez que a página carrega
+  const categories = await prisma.category.findMany({
+    orderBy: { name: 'asc' }, // Dica extra: Ordena alfabeticamente para ficar organizado
+  });
 
   async function createPost(formData: FormData) {
     "use server";
@@ -44,6 +49,7 @@ export default async function NewPostPage() {
 
       <form action={createPost} className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         
+        {/* Título */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Título da Publicação</label>
           <input 
@@ -56,6 +62,7 @@ export default async function NewPostPage() {
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
+          {/* Categoria */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Categoria</label>
             <select name="categoryId" className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white" required>
@@ -64,14 +71,19 @@ export default async function NewPostPage() {
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
+            {categories.length === 0 && (
+                <p className="text-xs text-red-500 mt-1">Nenhuma categoria encontrada. Crie uma antes.</p>
+            )}
           </div>
 
+          {/* Upload de Imagem */}
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">Capa do Post</label>
             <ImageUpload name="coverImage" />
           </div>
         </div>
 
+        {/* Conteúdo */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Conteúdo</label>
           <textarea 
@@ -83,6 +95,7 @@ export default async function NewPostPage() {
           ></textarea>
         </div>
 
+        {/* Botões */}
         <div className="flex justify-end gap-4 pt-4 border-t border-slate-100">
           <a href="/dashboard" className="px-6 py-3 rounded-lg text-slate-600 hover:bg-slate-50 font-medium flex items-center gap-2">
             <X size={20} /> Cancelar
