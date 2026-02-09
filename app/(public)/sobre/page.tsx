@@ -1,19 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import Image from "next/image";
 
-// Atualiza o cache a cada 60 segundos (ou use 'force-dynamic' para ser instantâneo)
+// Atualiza o cache a cada 60 segundos (para não pesar o banco)
 export const revalidate = 60;
 
 export default async function SobrePage() {
-  // Busca o conteúdo no banco pelo slug 'sobre'
+  // 1. Busca o conteúdo no banco pelo slug 'sobre'
   const page = await prisma.staticPage.findUnique({
     where: { slug: "sobre" },
   });
 
+  // 2. Se não achar nada no banco, mostra aviso
   if (!page) {
-    return <div className="p-20 text-center">Página "Sobre" ainda não criada no painel.</div>;
+    return (
+      <main className="container mx-auto px-4 py-20 text-center">
+        <h1 className="text-2xl font-bold text-slate-800">Página em construção</h1>
+        <p className="text-slate-500">O conteúdo "Sobre" ainda não foi criado no painel.</p>
+      </main>
+    );
   }
 
+  // 3. Mostra o conteúdo oficial
   return (
     <main className="container mx-auto px-4 py-12 max-w-4xl">
       <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-slate-100">
@@ -21,9 +27,8 @@ export default async function SobrePage() {
           {page.title}
         </h1>
         
-        {/* Aqui renderizamos o texto. 
-            A propriedade whitespace-pre-wrap mantém os parágrafos que você der Enter no painel. */}
-        <div className="prose prose-lg text-slate-600 max-w-none whitespace-pre-wrap">
+        {/* whitespace-pre-wrap: Mantém os parágrafos e quebras de linha que você der no painel */}
+        <div className="prose prose-lg text-slate-600 max-w-none whitespace-pre-wrap font-sans">
           {page.content}
         </div>
       </div>

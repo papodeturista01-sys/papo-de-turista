@@ -12,18 +12,18 @@ export default async function ContatoPage() {
     <main className="container mx-auto px-4 py-12 max-w-5xl">
       <div className="grid md:grid-cols-2 gap-12">
         
-        {/* Coluna da Esquerda: Texto do Banco */}
+        {/* Lado Esquerdo: Texto vindo do Banco (Editável) */}
         <div>
           <h1 className="text-4xl font-bold text-slate-900 mb-6">
             {page?.title || "Fale Conosco"}
           </h1>
-          <div className="prose text-slate-600 whitespace-pre-wrap mb-8">
+          <div className="prose text-slate-600 whitespace-pre-wrap mb-8 font-sans">
             {page?.content || "Entre em contato conosco..."}
           </div>
         </div>
 
-        {/* Coluna da Direita: Formulário ou Infos Fixas (Exemplo Visual) */}
-        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200">
+        {/* Lado Direito: Informações Fixas (Bonito visualmente) */}
+        <div className="bg-slate-50 p-8 rounded-2xl border border-slate-200 h-fit">
           <h3 className="text-xl font-bold mb-6 text-slate-800">Canais de Atendimento</h3>
           
           <div className="space-y-6">
