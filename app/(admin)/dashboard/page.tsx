@@ -1,13 +1,37 @@
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import { PlusCircle, FileText } from "lucide-react";
+import { PlusCircle, Star, PenSquare } from "lucide-react";
+import { revalidatePath } from "next/cache";
+
 export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
-  // Busca todos os posts do banco de dados (ordenados pelos mais novos)
+  
+  // AÇÃO DO SERVIDOR: Troca o status de Destaque
+  async function toggleFeatured(formData: FormData) {
+    "use server";
+    const postId = formData.get("postId") as string;
+    const isFeatured = formData.get("isFeatured") === "true";
+
+    // 1. Tira o destaque de todos os outros (opcional, para ter só 1 banner)
+    if (!isFeatured) {
+       await prisma.post.updateMany({ data: { featured: false } });
+    }
+
+    // 2. Define o novo destaque
+    await prisma.post.update({
+      where: { id: postId },
+      data: { featured: !isFeatured }
+    });
+
+    revalidatePath("/dashboard");
+    revalidatePath("/"); // Atualiza a Home também
+  }
+
+  // Busca os posts ordenados
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: "desc" },
-    include: { category: true }, // Traz o nome da categoria junto
+    include: { category: true },
   });
 
   return (
@@ -17,8 +41,8 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-bold text-slate-800">Visão Geral</h1>
           <p className="text-slate-500">Bem-vindo de volta ao seu diário de bordo.</p>
         </div>
-        <Link 
-          href="/dashboard/novo" 
+        <Link
+          href="/dashboard/novo"
           className="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition flex items-center gap-2"
         >
           <PlusCircle size={20} />
@@ -26,74 +50,52 @@ export default async function Dashboard() {
         </Link>
       </header>
 
-      {/* Cartões de Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-100">
-          <h3 className="text-slate-500 text-sm font-medium uppercase">Total de Posts</h3>
-          <p className="text-3xl font-bold text-slate-800 mt-2">{posts.length}</p>
-        </div>
-        {/* Aqui podemos adicionar mais métricas no futuro */}
-      </div>
-
-      {/* Lista de Posts */}
+      {/* Tabela de Posts */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-100">
-          <h2 className="font-bold text-slate-800">Últimas Publicações</h2>
-        </div>
-
-        {posts.length === 0 ? (
-          // Estado Vazio (quando não tem post)
-          <div className="p-12 text-center flex flex-col items-center text-slate-400">
-            <FileText size={48} className="mb-4 opacity-20" />
-            <p>Nenhuma crônica escrita ainda.</p>
-            <p className="text-sm">Que tal começar a contar uma história hoje?</p>
-          </div>
-        ) : (
-          // Tabela de Posts
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-slate-700 font-semibold uppercase text-xs">
-              <tr>
-                <th className="px-6 py-4">Título</th>
-                <th className="px-6 py-4">Categoria</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4">Data</th>
-                <th className="px-6 py-4 text-right">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {posts.map((post) => (
-                <tr key={post.id} className="hover:bg-slate-50 transition">
-                  <td className="px-6 py-4 font-medium text-slate-900">{post.title}</td>
-                  <td className="px-6 py-4">
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-bold">
-                      {post.category?.name || "Geral"}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    {post.published ? (
-                      <span className="text-green-600 font-bold text-xs flex items-center gap-1">● Publicado</span>
-                    ) : (
-                      <span className="text-amber-500 font-bold text-xs flex items-center gap-1">● Rascunho</span>
-                    )}
-                  </td>
-        
-                  <td className="px-6 py-4">
-                    {new Date(post.createdAt).toLocaleDateString('pt-BR')}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {/* AQUI ESTÁ A MUDANÇA: Link para a pasta 'editar' */}
-                    <Link 
-                      href={`/dashboard/editar/${post.slug}`} 
-                      className="text-blue-600 font-bold hover:underline"
+        <table className="w-full text-left">
+          <thead className="bg-slate-50 border-b border-slate-100">
+            <tr>
+              <th className="p-4 text-xs font-bold text-slate-500 uppercase">Destaque</th>
+              <th className="p-4 text-xs font-bold text-slate-500 uppercase">Título</th>
+              <th className="p-4 text-xs font-bold text-slate-500 uppercase">Categoria</th>
+              <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Ação</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {posts.map((post) => (
+              <tr key={post.id} className="hover:bg-slate-50 transition">
+                
+                {/* BOTÃO DE ESTRELA (DESTAQUE) */}
+                <td className="p-4 text-center w-20">
+                  <form action={toggleFeatured}>
+                    <input type="hidden" name="postId" value={post.id} />
+                    <input type="hidden" name="isFeatured" value={String(post.featured)} />
+                    <button 
+                      className={`p-2 rounded-full transition ${post.featured ? 'text-yellow-400 hover:text-yellow-600' : 'text-slate-300 hover:text-yellow-400'}`}
+                      title={post.featured ? "Remover do Banner" : "Colocar no Banner"}
                     >
-                      Editar
-                    </Link>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+                      <Star size={20} fill={post.featured ? "currentColor" : "none"} />
+                    </button>
+                  </form>
+                </td>
+
+                <td className="p-4 font-medium text-slate-700">{post.title}</td>
+                
+                <td className="p-4">
+                  <span className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md font-bold uppercase">
+                    {post.category?.name || "Sem Categoria"}
+                  </span>
+                </td>
+
+                <td className="p-4 text-right">
+                  <button className="text-blue-600 hover:underline text-sm font-medium flex items-center justify-end gap-1">
+                    <PenSquare size={16} /> Editar
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
