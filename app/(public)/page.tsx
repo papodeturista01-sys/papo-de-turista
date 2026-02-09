@@ -1,4 +1,4 @@
-import Hero from "@/components/HeroBanner"; // Mudou aqui!
+import Hero from "@/components/HeroDestaque"; // <--- Nome novo aqui!
 // import FeaturedPosts from "@/components/FeaturedPosts"; // Se você tiver essa lista embaixo
 import { prisma } from "@/lib/prisma";
 
