@@ -2,19 +2,19 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { Save, X, Trash2 } from "lucide-react";
-// Importação corrigida com 4 níveis (../../../../)
+// Importação com 4 níveis para chegar na pasta components
 import { ImageUpload } from "../../../../components/ImageUpload";
 
 export const dynamic = 'force-dynamic';
 
-// O nome da pasta é [slug], então recebemos { slug } aqui
+// ATENÇÃO: Como a pasta se chama [slug], precisamos receber { slug } aqui
 export default async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
   
-  // 1. Pegamos o "slug" da URL (que no nosso caso, é o ID do post)
+  // 1. Pegamos o valor da URL (que é o ID do post)
   const { slug } = await params;
-  const postId = slug; // Só renomeando para ficar claro que estamos usando como ID
+  const postId = slug; // Renomeando para ficar claro que é o ID
 
-  // 2. Busca o post original no banco usando esse ID
+  // 2. Busca o post no banco usando esse ID
   const post = await prisma.post.findUnique({
     where: { id: postId },
   });
@@ -22,11 +22,12 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
   // 3. Busca as categorias
   const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
 
+  // Se não achar o post, mostra erro amigável
   if (!post) {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-slate-500">
         <h1 className="text-xl font-bold">Post não encontrado 😕</h1>
-        <p className="text-sm">O ID buscado foi: {postId}</p>
+        <p className="text-sm">Tentamos buscar o ID: {postId}</p>
         <a href="/dashboard" className="text-blue-600 hover:underline mt-4">Voltar ao Painel</a>
       </div>
     );
@@ -42,7 +43,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
     const coverImage = formData.get("coverImage") as string;
     const excerpt = formData.get("excerpt") as string;
 
-    // Gera slug novo se o título mudar
+    // Gera um slug novo caso o título tenha mudado
     const newSlug = title
       .toLowerCase()
       .normalize("NFD")
@@ -51,7 +52,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
       .replace(/^-+|-+$/g, "");
 
     await prisma.post.update({
-      where: { id: postId }, // Usa o ID correto
+      where: { id: postId }, // Usa o ID correto para atualizar
       data: {
         title,
         slug: newSlug,
@@ -62,6 +63,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
       },
     });
 
+    // Atualiza as páginas e volta para o painel
     revalidatePath("/dashboard");
     revalidatePath("/");
     redirect("/dashboard");
@@ -128,7 +130,7 @@ export default async function EditPostPage({ params }: { params: Promise<{ slug:
           </div>
         </div>
 
-        {/* Resumo */}
+        {/* Resumo (NOVO) */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Resumo Rápido</label>
           <textarea 
