@@ -1,139 +1,167 @@
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
-import { Save, Trash2, ArrowLeft } from "lucide-react";
-import Link from "next/link";
-import { ImageUpload } from "@/app/components/ImageUpload";
+import { revalidatePath } from "next/cache";
+import { Save, X, Trash2 } from "lucide-react";
+// Importação corrigida com 4 níveis (../../../../)
+import { ImageUpload } from "../../../../components/ImageUpload";
 
-interface EditPostProps {
-  params: Promise<{ slug: string }>;
-}
+export const dynamic = 'force-dynamic';
 
-export default async function EditPostPage({ params }: EditPostProps) {
+// O nome da pasta é [slug], então recebemos { slug } aqui
+export default async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
+  
+  // 1. Pegamos o "slug" da URL (que no nosso caso, é o ID do post)
   const { slug } = await params;
+  const postId = slug; // Só renomeando para ficar claro que estamos usando como ID
 
-  // 1. Busca o Post e as Categorias para preencher o formulário
-  const post = await prisma.post.findUnique({ where: { slug } });
-  const categories = await prisma.category.findMany();
+  // 2. Busca o post original no banco usando esse ID
+  const post = await prisma.post.findUnique({
+    where: { id: postId },
+  });
+
+  // 3. Busca as categorias
+  const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
 
   if (!post) {
-    return <div>Post não encontrado!</div>;
+    return (
+      <div className="flex flex-col items-center justify-center h-screen text-slate-500">
+        <h1 className="text-xl font-bold">Post não encontrado 😕</h1>
+        <p className="text-sm">O ID buscado foi: {postId}</p>
+        <a href="/dashboard" className="text-blue-600 hover:underline mt-4">Voltar ao Painel</a>
+      </div>
+    );
   }
 
-  // === AÇÃO DE ATUALIZAR (UPDATE) ===
+  // --- AÇÃO DE ATUALIZAR (UPDATE) ---
   async function updatePost(formData: FormData) {
     "use server";
+
     const title = formData.get("title") as string;
     const content = formData.get("content") as string;
     const categoryId = formData.get("categoryId") as string;
     const coverImage = formData.get("coverImage") as string;
-    const postId = formData.get("postId") as string;
+    const excerpt = formData.get("excerpt") as string;
+
+    // Gera slug novo se o título mudar
+    const newSlug = title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
 
     await prisma.post.update({
-      where: { id: postId },
+      where: { id: postId }, // Usa o ID correto
       data: {
         title,
+        slug: newSlug,
         content,
-        categoryId,
         coverImage,
+        excerpt,
+        categoryId,
       },
     });
 
+    revalidatePath("/dashboard");
+    revalidatePath("/");
     redirect("/dashboard");
   }
 
-  // === AÇÃO DE EXCLUIR (DELETE) ===
-  async function deletePost(formData: FormData) {
+  // --- AÇÃO DE EXCLUIR (DELETE) ---
+  async function deletePost() {
     "use server";
-    const postId = formData.get("postId") as string;
-
-    await prisma.post.delete({
-      where: { id: postId },
-    });
-
+    await prisma.post.delete({ where: { id: postId } });
+    revalidatePath("/dashboard");
     redirect("/dashboard");
   }
 
   return (
-    <div className="max-w-4xl mx-auto pb-20">
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/dashboard" className="p-2 rounded-full hover:bg-slate-200 transition">
-          <ArrowLeft size={20} className="text-slate-600"/>
-        </Link>
-        <h1 className="text-3xl font-bold text-slate-800">Editar Post</h1>
+    <div className="max-w-4xl mx-auto">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold text-slate-800">Editar História ✏️</h1>
+        
+        {/* Botão de Excluir */}
+        <form action={deletePost}>
+           <button 
+             className="text-red-500 hover:bg-red-50 px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition"
+           >
+             <Trash2 size={18} /> Excluir Post
+           </button>
+        </form>
       </div>
 
-      <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-8">
+      <form action={updatePost} className="bg-white p-8 rounded-xl shadow-sm border border-slate-100 space-y-6">
         
-        {/* Formulário de Edição */}
-        <form action={updatePost} className="space-y-6">
-          <input type="hidden" name="postId" value={post.id} />
-
-          {/* Título */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Título</label>
-            <input 
-              name="title" 
-              defaultValue={post.title}
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-            />
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6">
-            {/* Categoria */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Categoria</label>
-              <select 
-                name="categoryId" 
-                defaultValue={post.categoryId || ""}
-                className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white"
-              >
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>{cat.name}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Imagem (Com Preview da atual) */}
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Capa</label>
-              <ImageUpload name="coverImage" defaultValue={post.coverImage || ""} />
-            </div>
-          </div>
-
-          {/* Conteúdo */}
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Conteúdo</label>
-            <textarea 
-              name="content" 
-              rows={12}
-              defaultValue={post.content}
-              className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
-            ></textarea>
-          </div>
-
-          {/* Botão Salvar */}
-          <div className="flex justify-end pt-4 border-t border-slate-100">
-            <button className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg flex items-center gap-2">
-              <Save size={20} /> Salvar Alterações
-            </button>
-          </div>
-        </form>
-
-        {/* Zona de Perigo (Excluir) */}
-        <div className="mt-12 pt-8 border-t border-slate-100 bg-red-50 p-6 rounded-xl">
-          <h3 className="text-red-800 font-bold mb-2">Zona de Perigo</h3>
-          <p className="text-red-600 text-sm mb-4">
-            Deseja apagar esta história? Essa ação não pode ser desfeita.
-          </p>
-          <form action={deletePost}>
-            <input type="hidden" name="postId" value={post.id} />
-            <button className="px-6 py-2 bg-white border border-red-200 text-red-600 font-bold rounded-lg hover:bg-red-600 hover:text-white transition flex items-center gap-2">
-              <Trash2 size={18} /> Excluir Post Definitivamente
-            </button>
-          </form>
+        {/* Título */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Título da Publicação</label>
+          <input 
+            name="title" 
+            defaultValue={post.title}
+            type="text" 
+            required
+            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+          />
         </div>
 
-      </div>
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Categoria */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Categoria</label>
+            <select 
+              name="categoryId" 
+              defaultValue={post.categoryId || ""} 
+              className="w-full px-4 py-3 rounded-lg border border-slate-200 bg-white" 
+              required
+            >
+              <option value="">Selecione...</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.id}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Upload de Imagem */}
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">Capa do Post</label>
+            <ImageUpload name="coverImage" defaultValue={post.coverImage || ""} />
+          </div>
+        </div>
+
+        {/* Resumo */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Resumo Rápido</label>
+          <textarea 
+            name="excerpt" 
+            defaultValue={post.excerpt || ""}
+            rows={2} 
+            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"
+          ></textarea>
+        </div>
+
+        {/* Conteúdo */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Conteúdo</label>
+          <textarea 
+            name="content" 
+            defaultValue={post.content}
+            required
+            rows={12}
+            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
+          ></textarea>
+        </div>
+
+        {/* Botões */}
+        <div className="flex justify-end gap-4 pt-4 border-t border-slate-100">
+          <a href="/dashboard" className="px-6 py-3 rounded-lg text-slate-600 hover:bg-slate-50 font-medium flex items-center gap-2">
+            <X size={20} /> Cancelar
+          </a>
+          <button type="submit" className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg transition flex items-center gap-2">
+            <Save size={20} /> Salvar Alterações
+          </button>
+        </div>
+
+      </form>
     </div>
   );
 }
