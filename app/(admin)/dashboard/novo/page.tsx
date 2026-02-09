@@ -31,7 +31,7 @@ export default async function NewPostPage() {
         slug,
         content,
         coverImage,
-        excerpt, // <--- AGORA SALVA NO BANCO
+        excerpt, 
         categoryId,
         published: true,
       },
