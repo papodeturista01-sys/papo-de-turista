@@ -23,9 +23,11 @@ export default async function ContatoPage() {
            A classe 'whitespace-pre-wrap' é mágica: ela respeita os "Enters" 
            que você der lá no painel. Se pular linha lá, pula aqui.
         */}
-        <div className="prose prose-lg text-slate-600 max-w-none whitespace-pre-wrap font-sans text-lg leading-relaxed">
-          {page?.content || "Entre em contato conosco..."}
-        </div>
+       {/* Mude APENAS essa parte do div */}
+        <div 
+          className="prose prose-lg text-slate-600 max-w-none font-sans"
+          dangerouslySetInnerHTML={{ __html: page?.content || "" }} 
+        />
 
       </div>
     </main>
