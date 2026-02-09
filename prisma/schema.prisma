@@ -13,6 +13,7 @@ model Post {
   title      String
   slug       String   @unique
   content    String
+  excerpt    String?  // <--- ADICIONE ESTA LINHA AQUI! (Resumo do post)
   coverImage String?
   published  Boolean  @default(false)
   

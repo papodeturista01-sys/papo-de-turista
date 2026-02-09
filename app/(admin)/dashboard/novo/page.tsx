@@ -4,14 +4,10 @@ import { revalidatePath } from "next/cache";
 import { Save, X } from "lucide-react";
 import { ImageUpload } from "../../../components/ImageUpload"; 
 
-// 1. ADICIONE ESTA LINHA AQUI!!! 👇
 export const dynamic = 'force-dynamic';
 
 export default async function NewPostPage() {
-  // Agora ele busca a lista fresquinha toda vez que a página carrega
-  const categories = await prisma.category.findMany({
-    orderBy: { name: 'asc' }, // Dica extra: Ordena alfabeticamente para ficar organizado
-  });
+  const categories = await prisma.category.findMany({ orderBy: { name: 'asc' } });
 
   async function createPost(formData: FormData) {
     "use server";
@@ -20,6 +16,7 @@ export default async function NewPostPage() {
     const content = formData.get("content") as string;
     const categoryId = formData.get("categoryId") as string;
     const coverImage = formData.get("coverImage") as string;
+    const excerpt = formData.get("excerpt") as string; // <--- AGORA PEGA O RESUMO
     
     const slug = title
       .toLowerCase()
@@ -34,6 +31,7 @@ export default async function NewPostPage() {
         slug,
         content,
         coverImage,
+        excerpt, // <--- AGORA SALVA NO BANCO
         categoryId,
         published: true,
       },
@@ -52,13 +50,7 @@ export default async function NewPostPage() {
         {/* Título */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Título da Publicação</label>
-          <input 
-            name="title" 
-            type="text" 
-            required
-            placeholder="Ex: O dia em que me perdi em Tóquio"
-            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition"
-          />
+          <input name="title" type="text" required placeholder="Ex: O dia em que me perdi em Tóquio" className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none transition" />
         </div>
 
         <div className="grid md:grid-cols-2 gap-6">
@@ -71,9 +63,6 @@ export default async function NewPostPage() {
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
-            {categories.length === 0 && (
-                <p className="text-xs text-red-500 mt-1">Nenhuma categoria encontrada. Crie uma antes.</p>
-            )}
           </div>
 
           {/* Upload de Imagem */}
@@ -83,26 +72,21 @@ export default async function NewPostPage() {
           </div>
         </div>
 
+        {/* Resumo (NOVO CAMPO VISUAL) */}
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-2">Resumo Rápido (Aparece no Banner)</label>
+          <textarea name="excerpt" rows={2} placeholder="Um texto curto para chamar atenção..." className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none"></textarea>
+        </div>
+
         {/* Conteúdo */}
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-2">Conteúdo</label>
-          <textarea 
-            name="content" 
-            required
-            rows={12}
-            placeholder="Comece a escrever aqui..."
-            className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-y"
-          ></textarea>
+          <textarea name="content" required rows={12} placeholder="Comece a escrever aqui..." className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500 outline-none resize-y"></textarea>
         </div>
 
-        {/* Botões */}
         <div className="flex justify-end gap-4 pt-4 border-t border-slate-100">
-          <a href="/dashboard" className="px-6 py-3 rounded-lg text-slate-600 hover:bg-slate-50 font-medium flex items-center gap-2">
-            <X size={20} /> Cancelar
-          </a>
-          <button type="submit" className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-xl transition flex items-center gap-2">
-            <Save size={20} /> Publicar Agora
-          </button>
+          <a href="/dashboard" className="px-6 py-3 rounded-lg text-slate-600 hover:bg-slate-50 font-medium flex items-center gap-2"><X size={20} /> Cancelar</a>
+          <button type="submit" className="px-8 py-3 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-xl transition flex items-center gap-2"><Save size={20} /> Publicar Agora</button>
         </div>
 
       </form>
