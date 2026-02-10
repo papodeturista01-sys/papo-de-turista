@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export default async function EditPostPage({ params }: { params: Promise<{ slug: string }> }) {
   
   const { slug } = await params; 
-  const postId = slug; // O valor que chega aqui é o ID que veio do link
+  const postId = slug; 
 
   // Busca o post pelo ID
   const post = await prisma.post.findUnique({
