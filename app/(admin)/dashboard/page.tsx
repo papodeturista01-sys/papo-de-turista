@@ -7,13 +7,13 @@ export const dynamic = 'force-dynamic';
 
 export default async function Dashboard() {
   
-  // AÇÃO DO SERVIDOR: Troca o status de Destaque
+  // AÇÃO DO SERVIDOR: Troca o destaque (Banner)
   async function toggleFeatured(formData: FormData) {
     "use server";
     const postId = formData.get("postId") as string;
     const isFeatured = formData.get("isFeatured") === "true";
 
-    // 1. Tira o destaque de todos os outros (opcional, para ter só 1 banner)
+    // 1. Se for marcar como destaque, remove o destaque de todos os outros
     if (!isFeatured) {
        await prisma.post.updateMany({ data: { featured: false } });
     }
@@ -25,10 +25,10 @@ export default async function Dashboard() {
     });
 
     revalidatePath("/dashboard");
-    revalidatePath("/"); // Atualiza a Home também
+    revalidatePath("/"); 
   }
 
-  // Busca os posts ordenados
+  // Busca os posts
   const posts = await prisma.post.findMany({
     orderBy: { createdAt: "desc" },
     include: { category: true },
@@ -55,7 +55,7 @@ export default async function Dashboard() {
         <table className="w-full text-left">
           <thead className="bg-slate-50 border-b border-slate-100">
             <tr>
-              <th className="p-4 text-xs font-bold text-slate-500 uppercase">Destaque</th>
+              <th className="p-4 text-xs font-bold text-slate-500 uppercase text-center w-20">Destaque</th>
               <th className="p-4 text-xs font-bold text-slate-500 uppercase">Título</th>
               <th className="p-4 text-xs font-bold text-slate-500 uppercase">Categoria</th>
               <th className="p-4 text-xs font-bold text-slate-500 uppercase text-right">Ação</th>
@@ -65,13 +65,13 @@ export default async function Dashboard() {
             {posts.map((post) => (
               <tr key={post.id} className="hover:bg-slate-50 transition">
                 
-                {/* BOTÃO DE ESTRELA (DESTAQUE) */}
-                <td className="p-4 text-center w-20">
+                {/* BOTÃO DE ESTRELA */}
+                <td className="p-4 text-center">
                   <form action={toggleFeatured}>
                     <input type="hidden" name="postId" value={post.id} />
                     <input type="hidden" name="isFeatured" value={String(post.featured)} />
                     <button 
-                      className={`p-2 rounded-full transition ${post.featured ? 'text-yellow-400 hover:text-yellow-600' : 'text-slate-300 hover:text-yellow-400'}`}
+                      className={`p-2 rounded-full transition ${post.featured ? 'text-yellow-400 hover:text-yellow-600 scale-110' : 'text-slate-300 hover:text-yellow-400'}`}
                       title={post.featured ? "Remover do Banner" : "Colocar no Banner"}
                     >
                       <Star size={20} fill={post.featured ? "currentColor" : "none"} />
@@ -88,9 +88,13 @@ export default async function Dashboard() {
                 </td>
 
                 <td className="p-4 text-right">
-                  <button className="text-blue-600 hover:underline text-sm font-medium flex items-center justify-end gap-1">
+                  {/* AQUI ESTAVA O PROBLEMA: Agora usamos Link em vez de button */}
+                  <Link 
+                    href={`/dashboard/editar/${post.id}`} 
+                    className="text-blue-600 hover:underline text-sm font-medium flex items-center justify-end gap-1"
+                  >
                     <PenSquare size={16} /> Editar
-                  </button>
+                  </Link>
                 </td>
               </tr>
             ))}
