@@ -1,134 +1,119 @@
 import { prisma } from "@/lib/prisma";
 import Image from "next/image";
 import Link from "next/link";
-// Importando fontes do Google para ficar igual à referência
-import { Dancing_Script, Playfair_Display, Lato } from 'next/font/google';
+import { ArrowLeft, Calendar, Tag, Clock } from "lucide-react";
 
-// Configuração das fontes
-const dancingScript = Dancing_Script({ subsets: ['latin'], weight: ['400', '700'] });
-const playfair = Playfair_Display({ subsets: ['latin'], weight: ['400', '700'] });
-const lato = Lato({ subsets: ['latin'], weight: ['300', '400', '700'] });
+export const dynamic = 'force-dynamic';
 
-export const dynamic = "force-dynamic";
+export default async function PostPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
 
-export default async function Home() {
-  
-  // 1. Busca os 5 posts FAVORITOS (Destaque ⭐)
-  const favoritePosts = await prisma.post.findMany({
-    where: { published: true, featured: true },
+  // Busca o post pelo slug (o texto amigável na URL)
+  const post = await prisma.post.findUnique({
+    where: { slug },
     include: { category: true },
-    orderBy: { updatedAt: 'desc' },
-    take: 5,
   });
 
-  // 2. Busca os 5 posts mais RECENTES (Novidades), excluindo os que já estão nos favoritos
-  const recentPosts = await prisma.post.findMany({
-    where: { 
-      published: true,
-      id: { notIn: favoritePosts.map(p => p.id) } // Não repete os favoritos
-    },
-    include: { category: true },
-    orderBy: { createdAt: "desc" },
-    take: 5,
+  // Se não achar o post, mostra uma mensagem bonita
+  if (!post) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 text-slate-600">
+        <h1 className="text-4xl font-bold mb-4">404</h1>
+        <p className="text-xl mb-8">Poxa, não encontramos essa história! 🗺️</p>
+        <Link href="/" className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+          Voltar para o Início
+        </Link>
+      </div>
+    );
+  }
+
+  // Formata a data (Ex: 10 de Fevereiro de 2026)
+  const formattedDate = new Date(post.createdAt).toLocaleDateString('pt-BR', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
   });
 
-  // Componente para os cards menores do topo
-  const FavoriteCard = ({ post }: { post: any }) => (
-    <Link href={`/post/${post.slug}`} className="group flex flex-col text-center w-full">
-      <div className="relative h-40 w-full mb-3 overflow-hidden rounded-sm">
-        {post.coverImage ? (
-          <Image src={post.coverImage} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400 text-xs">Sem Foto</div>
-        )}
-      </div>
-      <h3 className={`${playfair.className} text-sm font-bold text-slate-800 group-hover:text-blue-600 transition leading-tight px-2`}>
-        {post.title}
-      </h3>
-    </Link>
-  );
-
-  // Componente para os cards maiores do grid de novidades
-  const NewsCard = ({ post, isTall = false }: { post: any, isTall?: boolean }) => (
-    <Link href={`/post/${post.slug}`} className={`group flex flex-col bg-white ${isTall ? 'h-full' : ''}`}>
-      <div className={`relative w-full mb-4 overflow-hidden rounded-sm ${isTall ? 'h-[400px] md:h-full min-h-[300px]' : 'h-64'}`}>
-        {post.coverImage ? (
-          <Image src={post.coverImage} alt={post.title} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-        ) : (
-          <div className="w-full h-full bg-slate-100 flex items-center justify-center text-slate-400">Sem Foto</div>
-        )}
-      </div>
-      <div className="flex flex-col items-center text-center px-4">
-        {post.category && (
-          <span className={`${lato.className} inline-block bg-rose-50 text-rose-600 text-[10px] font-bold px-2 py-1 uppercase tracking-widest mb-3 rounded-sm`}>
-            {post.category.name}
-          </span>
-        )}
-        <h3 className={`${playfair.className} text-2xl font-bold text-slate-900 mb-3 leading-snug group-hover:text-blue-600 transition`}>
-          {post.title}
-        </h3>
-        {post.excerpt && (
-          <p className={`${lato.className} text-slate-500 text-sm leading-relaxed line-clamp-3 font-light`}>
-            {post.excerpt}...
-          </p>
-        )}
-      </div>
-    </Link>
-  );
+  // Calcula tempo de leitura estimado (aprox. 200 palavras por minuto)
+  const wordCount = post.content.split(/\s+/).length;
+  const readTime = Math.ceil(wordCount / 200);
 
   return (
-    <main className="bg-white min-h-screen py-12">
+    <article className="min-h-screen bg-white pb-20">
       
-      {/* --- SEÇÃO: POSTS FAVORITOS (TOPO) --- */}
-      {favoritePosts.length > 0 && (
-        <section className="container mx-auto px-4 mb-16 border-b border-slate-100 pb-12">
-          <h2 className={`${dancingScript.className} text-center text-5xl text-slate-400 mb-10 relative before:content-[''] before:absolute before:top-1/2 before:left-0 before:w-[30%] before:h-px before:bg-slate-200 after:content-[''] after:absolute after:top-1/2 after:right-0 after:w-[30%] after:h-px after:bg-slate-200`}>
-            <span className="px-4 bg-white relative z-10">posts favoritos</span>
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 justify-items-center">
-            {favoritePosts.map((post) => (
-              <FavoriteCard key={post.id} post={post} />
-            ))}
-          </div>
-        </section>
+      {/* --- CABEÇALHO DO POST --- */}
+      <header className="max-w-4xl mx-auto px-6 pt-12 pb-8">
+        
+        {/* Botão Voltar */}
+        <Link href="/" className="inline-flex items-center text-slate-500 hover:text-blue-600 transition mb-8 font-medium">
+          <ArrowLeft size={20} className="mr-2" /> Voltar para o Blog
+        </Link>
+
+        {/* Categoria e Data */}
+        <div className="flex flex-wrap items-center gap-4 mb-6 text-sm">
+          {post.category && (
+            <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full font-bold uppercase tracking-wider flex items-center gap-1">
+              <Tag size={14} /> {post.category.name}
+            </span>
+          )}
+          <span className="flex items-center gap-1 text-slate-500">
+            <Calendar size={16} /> {formattedDate}
+          </span>
+          <span className="flex items-center gap-1 text-slate-500">
+            <Clock size={16} /> {readTime} min de leitura
+          </span>
+        </div>
+
+        {/* Título Principal */}
+        <h1 className="text-3xl md:text-5xl font-extrabold text-slate-900 leading-tight mb-6">
+          {post.title}
+        </h1>
+
+        {/* Resumo (Subtítulo) */}
+        {post.excerpt && (
+          <p className="text-xl text-slate-500 leading-relaxed font-light">
+            {post.excerpt}
+          </p>
+        )}
+      </header>
+
+
+      {/* --- IMAGEM DE DESTAQUE (CAPA) --- */}
+      {post.coverImage && (
+        <div className="w-full h-[400px] md:h-[500px] relative mb-12 bg-slate-100">
+          <Image
+            src={post.coverImage}
+            alt={post.title}
+            fill
+            className="object-cover"
+            priority // Carrega rápido por ser a principal
+          />
+        </div>
       )}
 
 
-      {/* --- SEÇÃO: NOVIDADES (GRID REVISTA) --- */}
-      <section className="container mx-auto px-4">
-        <h2 className={`${dancingScript.className} text-center text-5xl text-slate-400 mb-12 relative before:content-[''] before:absolute before:top-1/2 before:left-0 before:w-[35%] before:h-px before:bg-slate-200 after:content-[''] after:absolute after:top-1/2 after:right-0 after:w-[35%] after:h-px after:bg-slate-200`}>
-          <span className="px-4 bg-white relative z-10">novidades</span>
-        </h2>
-
-        {/* Layout estilo Revista (Grid Assimétrico) */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-8 gap-y-12">
-          
-          {/* Coluna Esquerda (2 posts verticais) */}
-          <div className="lg:col-span-4 flex flex-col gap-12">
-            {recentPosts[0] && <NewsCard post={recentPosts[0]} />}
-            {recentPosts[1] && <NewsCard post={recentPosts[1]} />}
+      {/* --- CONTEÚDO DO TEXTO --- */}
+      <div className="max-w-3xl mx-auto px-6">
+        <div className="prose prose-lg prose-slate prose-blue mx-auto">
+          {/* white-space-pre-wrap: Garante que os parágrafos e quebras de linha 
+             que você deu no editor sejam respeitados aqui.
+          */}
+          <div className="whitespace-pre-wrap text-slate-700 leading-loose text-lg">
+            {post.content}
           </div>
-
-          {/* Coluna do Meio (1 post alto) */}
-          <div className="lg:col-span-4">
-            {recentPosts[2] && <NewsCard post={recentPosts[2]} isTall={true} />}
-          </div>
-
-          {/* Coluna Direita (2 posts verticais) */}
-          <div className="lg:col-span-4 flex flex-col gap-12">
-            {recentPosts[3] && <NewsCard post={recentPosts[3]} />}
-            {recentPosts[4] && <NewsCard post={recentPosts[4]} />}
-          </div>
-
         </div>
 
-        {recentPosts.length === 0 && favoritePosts.length === 0 && (
-          <div className="text-center py-20 text-slate-400">
-            <p>Ainda não há publicações. Acesse o painel para começar!</p>
+        {/* Rodapé do Post */}
+        <div className="mt-16 pt-8 border-t border-slate-100 flex justify-between items-center">
+          <p className="text-slate-400 italic">
+            Escrito com ❤️ por Papo de Turista
+          </p>
+          <div className="flex gap-2">
+             {/* Aqui você poderia colocar botões de compartilhar no futuro */}
           </div>
-        )}
-      </section>
+        </div>
+      </div>
 
-    </main>
+    </article>
   );
 }
