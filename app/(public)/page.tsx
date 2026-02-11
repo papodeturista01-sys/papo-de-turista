@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Calendar } from "lucide-react";
 // Importando fontes do Google para o estilo revista
 import { Dancing_Script, Playfair_Display, Lato } from 'next/font/google';
+import { Newsletter } from "@/components/Newsletter";
 
 // Configuração das fontes
 const dancingScript = Dancing_Script({ subsets: ['latin'], weight: ['400', '700'] });
@@ -207,7 +208,8 @@ export default async function Home() {
           </div>
         )}
       </section>
-
+{/* --- NEWSLETTER --- */}
+<Newsletter />
     </main>
   );
 }
